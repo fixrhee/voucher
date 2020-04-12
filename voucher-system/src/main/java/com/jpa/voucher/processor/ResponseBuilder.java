@@ -26,15 +26,21 @@ public abstract class ResponseBuilder {
 		case ACCESS_DENIED:
 			return new ServiceResponse(arg.toString(), "403", "You don't have Permission to Access this WebService",
 					payload);
+		case INVALID_OUTLET:
+			return new ServiceResponse(arg.toString(), "404", "The Specified Outlet Not Found On System", payload);
 		case INVALID_REDEMPTION_POINT:
 			return new ServiceResponse(arg.toString(), "404", "Invalid Redemption Point", payload);
 		case VOUCHER_ALREADY_USED:
 			return new ServiceResponse(arg.toString(), "409", "Voucher has Already Being Used", payload);
+		case VOUCHER_CODE_ALREADY_USED:
+			return new ServiceResponse(arg.toString(), "409", "Voucher Code Already Being Used", payload);
 		case DUPLICATE_TRACENO:
 			return new ServiceResponse(arg.toString(), "409", "The specified Trace Number has Already Being Used",
 					payload);
 		case REGISTRATION_TIME_EXPIRED:
 			return new ServiceResponse(arg.toString(), "419", "Voucher Registration Time has Expired", payload);
+		case REDEMPTION_TIME_EXPIRED:
+			return new ServiceResponse(arg.toString(), "419", "Voucher Redemption Time has Expired", payload);
 		case QUOTA_EXCEEDED:
 			return new ServiceResponse(arg.toString(), "419", "Voucher Registration Quota Exceeded", payload);
 		case VOUCHER_INACTIVE:

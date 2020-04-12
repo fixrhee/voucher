@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.jpa.voucher.data.Member;
+import com.jpa.voucher.data.Outlet;
 import com.jpa.voucher.data.Product;
 import com.jpa.voucher.data.PublishVoucher;
 import com.jpa.voucher.data.Status;
@@ -38,6 +39,8 @@ public class VoucherProcessor {
 	private ProductRepository productRepository;
 	@Autowired
 	private HazelcastInstance hazelcastInstance;
+	@Autowired
+	private OutletRepository outletRepository;
 	private SnowcastSequencer snowcastSequencer;
 
 	@PostConstruct
@@ -86,15 +89,16 @@ public class VoucherProcessor {
 		return lv;
 	}
 
-	public Voucher getVoucherByCode(String code, String token) throws TransactionException {
+	public List<PublishVoucher> getVoucherByCode(String code, String refID, String token) throws TransactionException {
 		Member m = memberProcessor.Authenticate(token);
 		if (m == null) {
 			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
 		}
-		Voucher lv = voucherRepository.getVoucherByCode(code, m.getId());
-		if (lv == null) {
+		Voucher v = voucherRepository.getVoucherByCode(code, m.getId());
+		if (v == null) {
 			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
 		}
+		List<PublishVoucher> lv = voucherRepository.searchVoucherByCodeRefID(refID, v, m.getId());
 		return lv;
 	}
 
@@ -110,16 +114,29 @@ public class VoucherProcessor {
 		return pd;
 	}
 
-	public PublishVoucher searchVoucherByRefID(String refID, String token) throws TransactionException {
+	public List<PublishVoucher> searchVoucherByRefID(String refID, int currentPage, int pageSize, String token)
+			throws TransactionException {
 		Member m = memberProcessor.Authenticate(token);
 		if (m == null) {
 			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
 		}
-		PublishVoucher pv = voucherRepository.searchVoucherByRefID(refID, m.getId());
-		if (pv == null) {
+		List<PublishVoucher> pv = voucherRepository.searchVoucherByRefID(refID, currentPage, pageSize, m.getId());
+		if (pv.size() == 0) {
 			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
 		}
-		return pv;
+		List<Integer> ids = new LinkedList<Integer>();
+		for (int i = 0; i < pv.size(); i++) {
+			ids.add(pv.get(i).getVoucher().getId());
+		}
+
+		List<PublishVoucher> pvc = new ArrayList<PublishVoucher>(pv);
+		Map<Integer, Voucher> pm = voucherRepository.getVoucherInMap(ids);
+		for (int i = 0; i < pv.size(); i++) {
+			pvc.get(i).setVoucher(pm.get(pv.get(i).getVoucher().getId()));
+			pvc.get(i).setMember(m);
+		}
+
+		return pvc;
 	}
 
 	public void createVoucher(Map<String, Object> payload, VoucherImage img, String token) throws TransactionException {
@@ -160,6 +177,11 @@ public class VoucherProcessor {
 			}
 		}
 
+		boolean valCode = voucherRepository.validateCode(payload.get("code"), m.getId());
+		if (valCode == false) {
+			throw new TransactionException(Status.VOUCHER_CODE_ALREADY_USED);
+		}
+
 		String imgURL = img.getFileName() + "." + img.getFileExtension();
 		voucherRepository.createVoucher(payload, m.getId(), p.getId(), imgURL);
 	}
@@ -181,6 +203,10 @@ public class VoucherProcessor {
 				if (pd.getPublishExpiredDate().compareTo(new Date()) <= 0) {
 					throw new TransactionException(Status.REGISTRATION_TIME_EXPIRED);
 				}
+			}
+
+			if (pd.getRedeemExpiry() == false) {
+				pd.setRedeemExpiredDate(null);
 			}
 
 			String uid = "";
@@ -210,6 +236,73 @@ public class VoucherProcessor {
 			throw new TransactionException(Status.UNKNOWN_ERROR);
 		}
 
+	}
+
+	public PublishVoucher unpublishVoucher(String uid, String token) throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+		PublishVoucher pv = voucherRepository.searchVoucherByUID(uid, m.getId());
+		if (pv == null) {
+			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
+		}
+		if (pv.getStatus().equalsIgnoreCase("USED")) {
+			throw new TransactionException(Status.VOUCHER_ALREADY_USED);
+		} else {
+			voucherRepository.unpublishVoucher(uid, m.getId());
+		}
+		return pv;
+	}
+
+	public PublishVoucher inquiryVoucher(String uid, String token) throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+		PublishVoucher pv = voucherRepository.searchVoucherByUID(uid, m.getId());
+		if (pv == null) {
+			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
+		}
+		return pv;
+	}
+
+	public PublishVoucher redeemVoucher(String uid, String oid, String rn, String token) throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+		PublishVoucher pv = voucherRepository.searchVoucherByUID(uid, m.getId());
+		if (pv == null) {
+			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
+		}
+		if (pv.getStatus().equalsIgnoreCase("USED")) {
+			throw new TransactionException(Status.VOUCHER_ALREADY_USED);
+		}
+		Outlet outlet = outletRepository.loadOutletByID(oid, m.getId());
+		if (outlet != null) {
+			if (outletRepository.validateOutletRedeem(outlet.getId(), pv.getVoucher().getId()) == false) {
+				throw new TransactionException(Status.INVALID_REDEMPTION_POINT);
+			}
+		} else {
+			throw new TransactionException(Status.INVALID_OUTLET);
+		}
+		if (pv.getRedeemExpiredDate() != null) {
+			if (pv.getRedeemExpiredDate().compareTo(new Date()) <= 0) {
+				throw new TransactionException(Status.REDEMPTION_TIME_EXPIRED);
+			}
+		}
+
+		voucherRepository.redeemVoucher(uid, oid, rn, m.getId());
+		return pv;
+	}
+
+	public OutletRepository getOutletRepository() {
+		return outletRepository;
+	}
+
+	public void setOutletRepository(OutletRepository outletRepository) {
+		this.outletRepository = outletRepository;
 	}
 
 }

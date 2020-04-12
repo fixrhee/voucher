@@ -102,11 +102,85 @@ public class VoucherRepository {
 		}
 	}
 
-	public PublishVoucher searchVoucherByRefID(String rid, int mid) {
+	public List<PublishVoucher> searchVoucherByCodeRefID(String rid, Voucher v, int mid) {
+		try {
+			List<PublishVoucher> voucher = this.jdbcTemplate.query(
+					"SELECT id, voucher_id, member_id, outlet_id, uid, member_ref_id, session_id, name, email, msisdn, address, id_card_no, status, publish_date, redeem_date, redeem_expired_date FROM voucher_publish WHERE member_id = ? and voucher_id = ? and member_ref_id = ? ORDER BY id DESC;",
+					new Object[] { mid, v.getId(), rid }, new RowMapper<PublishVoucher>() {
+						public PublishVoucher mapRow(ResultSet rs, int arg1) throws SQLException {
+							PublishVoucher voucher = new PublishVoucher();
+							Member member = new Member();
+							member.setId(rs.getInt("member_id"));
+							Outlet outlet = new Outlet();
+							outlet.setId(rs.getInt("outlet_id"));
+							voucher.setId(rs.getInt("id"));
+							voucher.setMember(member);
+							voucher.setVoucher(v);
+							voucher.setOutlet(outlet);
+							voucher.setUid(rs.getString("uid"));
+							voucher.setMemberRefNo(rs.getString("member_ref_id"));
+							voucher.setSessionID(rs.getString("session_id"));
+							voucher.setName(rs.getString("name"));
+							voucher.setEmail(rs.getString("email"));
+							voucher.setMsisdn(rs.getString("msisdn"));
+							voucher.setAddress(rs.getString("address"));
+							voucher.setIdCardNo(rs.getString("id_card_no"));
+							voucher.setStatus(rs.getString("status"));
+							voucher.setPublishDate(rs.getTimestamp("publish_date"));
+							voucher.setRedeemDate(rs.getTimestamp("redeem_date"));
+							voucher.setRedeemExpiredDate(rs.getDate("redeem_expired_date"));
+							return voucher;
+						}
+					});
+			return voucher;
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	public List<PublishVoucher> searchVoucherByRefID(String rid, int currentPage, int pageSize, int mid) {
+		try {
+			List<PublishVoucher> voucher = this.jdbcTemplate.query(
+					"SELECT id, voucher_id, member_id, outlet_id, uid, member_ref_id, session_id, name, email, msisdn, address, id_card_no, status, publish_date, redeem_date, redeem_expired_date FROM voucher_publish WHERE member_id = ? and member_ref_id = ? ORDER BY id DESC LIMIT ?,?;",
+					new Object[] { mid, rid, currentPage, pageSize }, new RowMapper<PublishVoucher>() {
+						public PublishVoucher mapRow(ResultSet rs, int arg1) throws SQLException {
+							PublishVoucher voucher = new PublishVoucher();
+							Voucher v = new Voucher();
+							v.setId(rs.getInt("voucher_id"));
+							Member member = new Member();
+							member.setId(rs.getInt("member_id"));
+							Outlet outlet = new Outlet();
+							outlet.setId(rs.getInt("outlet_id"));
+							voucher.setId(rs.getInt("id"));
+							voucher.setMember(member);
+							voucher.setVoucher(v);
+							voucher.setOutlet(outlet);
+							voucher.setUid(rs.getString("uid"));
+							voucher.setMemberRefNo(rs.getString("member_ref_id"));
+							voucher.setSessionID(rs.getString("session_id"));
+							voucher.setName(rs.getString("name"));
+							voucher.setEmail(rs.getString("email"));
+							voucher.setMsisdn(rs.getString("msisdn"));
+							voucher.setAddress(rs.getString("address"));
+							voucher.setIdCardNo(rs.getString("id_card_no"));
+							voucher.setStatus(rs.getString("status"));
+							voucher.setPublishDate(rs.getTimestamp("publish_date"));
+							voucher.setRedeemDate(rs.getTimestamp("redeem_date"));
+							voucher.setRedeemExpiredDate(rs.getDate("redeem_expired_date"));
+							return voucher;
+						}
+					});
+			return voucher;
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	public PublishVoucher searchVoucherByUID(String uid, int mid) {
 		try {
 			PublishVoucher voucher = this.jdbcTemplate.queryForObject(
-					"SELECT id, voucher_id, member_id, outlet_id, uid, member_ref_id, session_id, name, email, msisdn, address, id_card_no, status, publish_date, redeem_date, redeem_expired_date FROM voucher_publish WHERE member_id = ? and member_ref_id = ?",
-					new Object[] { mid, rid }, new RowMapper<PublishVoucher>() {
+					"SELECT id, voucher_id, member_id, outlet_id, uid, member_ref_id, session_id, name, email, msisdn, address, id_card_no, status, publish_date, redeem_date, redeem_expired_date FROM voucher_publish WHERE member_id = ? and uid = ? ORDER BY id DESC LIMIT 1;",
+					new Object[] { mid, uid }, new RowMapper<PublishVoucher>() {
 						public PublishVoucher mapRow(ResultSet rs, int arg1) throws SQLException {
 							PublishVoucher voucher = new PublishVoucher();
 							Voucher v = new Voucher();
@@ -179,7 +253,7 @@ public class VoucherRepository {
 	public List<Voucher> getVoucherByProduct(int id, Object pid, int pageSize, int rowNum) {
 		try {
 			List<Voucher> voucher = this.jdbcTemplate.query(
-					"SELECT id, member_id, product_id, code, name, description, quota, active, amount, percentage, image_url, publish_expiry, redeemExpiry, publish_expired_date, redeem_expired_date, created_date FROM vouchers WHERE member_id = ? AND product_id = ? ORDER BY id DESC LIMIT ?,?;",
+					"SELECT id, member_id, product_id, code, name, description, quota, active, amount, percentage, image_url, publish_expiry, redeem_expiry, publish_expired_date, redeem_expired_date, created_date FROM vouchers WHERE member_id = ? AND product_id = ? ORDER BY id DESC LIMIT ?,?;",
 					new Object[] { id, pid, pageSize, rowNum }, new RowMapper<Voucher>() {
 						public Voucher mapRow(ResultSet rs, int arg1) throws SQLException {
 							Voucher voucher = new Voucher();
@@ -212,24 +286,37 @@ public class VoucherRepository {
 		}
 	}
 
-	public Map<Integer, Product> getVoucherInMap(List<Integer> ids) {
-		String sql = "select * from products where id in (:productID)";
-		Map<String, List<Integer>> paramMap = Collections.singletonMap("productID", ids);
+	public Map<Integer, Voucher> getVoucherInMap(List<Integer> ids) {
+		String sql = "select * from vouchers where id in (:voucherID)";
+		Map<String, List<Integer>> paramMap = Collections.singletonMap("voucherID", ids);
 		NamedParameterJdbcTemplate template = new NamedParameterJdbcTemplate(this.jdbcTemplate.getDataSource());
-		Map<Integer, Product> mapRet = template.query(sql, paramMap, new ResultSetExtractor<Map<Integer, Product>>() {
+		Map<Integer, Voucher> mapRet = template.query(sql, paramMap, new ResultSetExtractor<Map<Integer, Voucher>>() {
 			@Override
-			public Map<Integer, Product> extractData(ResultSet rs) throws SQLException, DataAccessException {
-				HashMap<Integer, Product> mapRet = new HashMap<Integer, Product>();
+			public Map<Integer, Voucher> extractData(ResultSet rs) throws SQLException, DataAccessException {
+				HashMap<Integer, Voucher> mapRet = new HashMap<Integer, Voucher>();
 				while (rs.next()) {
-					Product prod = new Product();
+					Voucher voucher = new Voucher();
+					Product product = new Product();
+					product.setId(rs.getInt("product_id"));
 					Member member = new Member();
 					member.setId(rs.getInt("member_id"));
-					prod.setCreatedDate(rs.getTimestamp("created_date"));
-					prod.setDescription(rs.getString("description"));
-					prod.setId(rs.getInt("id"));
-					prod.setMember(member);
-					prod.setName(rs.getString("name"));
-					mapRet.put(rs.getInt("id"), prod);
+					voucher.setId(rs.getInt("id"));
+					voucher.setMember(member);
+					voucher.setProduct(product);
+					voucher.setCode(rs.getString("code"));
+					voucher.setName(rs.getString("name"));
+					voucher.setDescription(rs.getString("description"));
+					voucher.setQuota(rs.getInt("quota"));
+					voucher.setActive(rs.getBoolean("active"));
+					voucher.setAmount(rs.getBigDecimal("amount"));
+					voucher.setPercentage(rs.getDouble("percentage"));
+					voucher.setImageURL(rs.getString("image_url"));
+					voucher.setPublishExpiry(rs.getBoolean("publish_expiry"));
+					voucher.setRedeemExpiry(rs.getBoolean("redeem_expiry"));
+					voucher.setPublishExpiredDate(rs.getDate("publish_expired_date"));
+					voucher.setRedeemExpiredDate(rs.getDate("redeem_expired_date"));
+					voucher.setCreatedDate(rs.getTimestamp("created_date"));
+					mapRet.put(rs.getInt("id"), voucher);
 				}
 				return mapRet;
 			}
@@ -257,6 +344,16 @@ public class VoucherRepository {
 		}
 	}
 
+	public boolean validateCode(Object code, int memberID) {
+		try {
+			this.jdbcTemplate.queryForObject("SELECT id from vouchers WHERE code = ? AND member_id = ?;",
+					new Object[] { code, memberID }, Integer.class);
+			return false;
+		} catch (EmptyResultDataAccessException e) {
+			return true;
+		}
+	}
+
 	public Integer countQuota(int vid) {
 		Integer count = this.jdbcTemplate.queryForObject("SELECT COUNT(id) from voucher_publish WHERE voucher_id = ?;",
 				new Object[] { vid }, Integer.class);
@@ -277,6 +374,16 @@ public class VoucherRepository {
 				mid, pid, payload.get("code"), payload.get("name"), payload.get("description"), payload.get("quota"),
 				payload.get("amount"), payload.get("percentage"), imgURL, payload.get("publishExpiry"),
 				payload.get("redeemExpiry"), payload.get("publishExpiredDate"), payload.get("redeemExpiredDate"));
+	}
+
+	public void unpublishVoucher(String uid, int mid) {
+		jdbcTemplate.update("DELETE FROM voucher_publish where member_id = ? and uid = ?", mid, uid);
+	}
+
+	public void redeemVoucher(String uid, String oid, String rn, int mid) {
+		jdbcTemplate.update(
+				"UPDATE voucher_publish set outlet_id = ?, redemption_number = ?, status = 'USED', redeem_date = NOW() where member_id = ? and uid = ?",
+				oid, rn, mid, uid);
 	}
 
 	@Autowired

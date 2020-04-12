@@ -64,7 +64,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 
 	<flow name="voucher-byCodeFlow">
 		<http:listener config-ref="HTTP_Listener_Configuration"
-			path="voucher/code/{code}" allowedMethods="GET" doc:name="HTTP" />
+			path="voucher/code" allowedMethods="GET" doc:name="HTTP" />
 		<set-variable
 			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
 			variableName="token" doc:name="Variable" />
@@ -72,12 +72,14 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			doc:name="Message">
 			<and-filter doc:name="And">
 				<expression-filter
-					expression="#[message.inboundProperties.'http.uri.params'.code != null]" />
+					expression="#[message.inboundProperties.'http.query.params'.code != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.memberRefID != null]" />
 				<expression-filter expression="#[flowVars['token'] != null]" />
 			</and-filter>
 		</message-filter>
 		<invoke method="getVoucherByCode"
-			methodArguments="#[message.inboundProperties.'http.uri.params'.code], #[flowVars['token']]"
+			methodArguments="#[message.inboundProperties.'http.query.params'.code], #[message.inboundProperties.'http.query.params'.memberRefID], #[flowVars['token']]"
 			object-ref="VoucherServiceImpl" doc:name="Invoke" />
 		<flow-ref name="responseFlow" doc:name="Flow Reference" />
 	</flow>
@@ -124,6 +126,67 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		<flow-ref name="responseFlow" doc:name="Flow Reference" />
 	</flow>
 
+	<flow name="voucher-unpublishFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/unpublish/{uid}" allowedMethods="DELETE" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.uid]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="voucherUnpublish"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.uid], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-inquiryFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/inquiry/{uid}" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.uid != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="voucherInquiry"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.uid], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-redeemFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/redeem" allowedMethods="POST" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter expression="#[payload.uid != null]" />
+				<expression-filter expression="#[payload.outletID != null]" />
+				<expression-filter expression="#[payload.redemptionNumber != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="voucherRedeem"
+			methodArguments="#[payload.uid], #[payload.outletID], #[payload.redemptionNumber], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
 	<flow name="voucher-searchByRefIDFlow">
 		<http:listener config-ref="HTTP_Listener_Configuration"
 			path="voucher/ref/{refID}" allowedMethods="GET" doc:name="HTTP" />
@@ -134,12 +197,16 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			doc:name="Message">
 			<and-filter doc:name="And">
 				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.currentPage != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.pageSize != null]" />
+				<expression-filter
 					expression="#[message.inboundProperties.'http.uri.params'.refID != null]" />
 				<expression-filter expression="#[flowVars['token'] != null]" />
 			</and-filter>
 		</message-filter>
 		<invoke method="searchVoucherByRefID"
-			methodArguments="#[message.inboundProperties.'http.uri.params'.refID], #[flowVars['token']]"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.refID], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
 			object-ref="VoucherServiceImpl" doc:name="Invoke" />
 		<flow-ref name="responseFlow" doc:name="Flow Reference" />
 	</flow>
