@@ -89,7 +89,8 @@ public class VoucherProcessor {
 		return lv;
 	}
 
-	public List<PublishVoucher> getVoucherByCode(String code, String refID, String token) throws TransactionException {
+	public List<PublishVoucher> getVoucherByCode(String code, String refID, int currentPage, int pageSize, String token)
+			throws TransactionException {
 		Member m = memberProcessor.Authenticate(token);
 		if (m == null) {
 			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
@@ -98,7 +99,8 @@ public class VoucherProcessor {
 		if (v == null) {
 			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
 		}
-		List<PublishVoucher> lv = voucherRepository.searchVoucherByCodeRefID(refID, v, m.getId());
+		List<PublishVoucher> lv = voucherRepository.searchVoucherByCodeRefID(refID, v, currentPage, pageSize,
+				m.getId());
 		return lv;
 	}
 
@@ -303,6 +305,32 @@ public class VoucherProcessor {
 
 	public void setOutletRepository(OutletRepository outletRepository) {
 		this.outletRepository = outletRepository;
+	}
+
+	public List<PublishVoucher> getVoucherByVID(String vid, int currentPage, int pageSize, String token)
+			throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+		Voucher v = voucherRepository.getVoucherByID(vid, m.getId());
+		if (v == null) {
+			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
+		}
+		List<PublishVoucher> pv = voucherRepository.searchVoucherByVID(v, currentPage, pageSize, m.getId());
+		return pv;
+	}
+
+	public void updateVoucher(Voucher payload, int vid, String token) throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+		Voucher v = voucherRepository.getVoucherByID(vid, m.getId());
+		if (v == null) {
+			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
+		}
+		voucherRepository.updateVoucher(payload, vid, m.getId());
 	}
 
 }

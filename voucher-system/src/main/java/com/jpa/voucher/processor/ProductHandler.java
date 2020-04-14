@@ -24,6 +24,24 @@ public class ProductHandler {
 		}
 	}
 
+	public ServiceResponse createProduct(String name, String description, String token) {
+		try {
+			productProcessor.createProduct(name, description, token);
+			return ResponseBuilder.getStatus(Status.PROCESSED, null);
+		} catch (TransactionException e) {
+			return ResponseBuilder.getStatus(e.getMessage(), null);
+		}
+	}
+
+	public ServiceResponse updateProduct(int id, String name, String description, String token) {
+		try {
+			productProcessor.updateProduct(id, name, description, token);
+			return ResponseBuilder.getStatus(Status.PROCESSED, null);
+		} catch (TransactionException e) {
+			return ResponseBuilder.getStatus(e.getMessage(), null);
+		}
+	}
+
 	public ServiceResponse getProductByID(int id, String token) {
 		try {
 			Product lacq = productProcessor.getProductByID(id, token);

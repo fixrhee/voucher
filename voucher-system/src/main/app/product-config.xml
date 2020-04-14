@@ -12,6 +12,48 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		<spring:bean id="ProductServiceImpl" class="com.jpa.voucher.processor.ProductHandler" />
 	</spring:beans>
 
+	<flow name="product-createlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="product" allowedMethods="POST" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter expression="#[payload.name != null]" />
+				<expression-filter expression="#[payload.description != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="createProduct"
+			methodArguments="#[payload.name], #[payload.description], #[flowVars['token']]"
+			object-ref="ProductServiceImpl" />
+		<flow-ref name="responseFlow" />
+	</flow>
+
+	<flow name="product-updatelow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="product/{productID}" allowedMethods="PUT" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.productID != null]" />
+				<expression-filter expression="#[payload.name != null]" />
+				<expression-filter expression="#[payload.description != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="updateProduct"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.productID ], #[payload.name], #[payload.description], #[flowVars['token']]"
+			object-ref="ProductServiceImpl" />
+		<flow-ref name="responseFlow" />
+	</flow>
+
 	<flow name="product-getByIDFlow">
 		<http:listener config-ref="HTTP_Listener_Configuration"
 			path="product/{productID}" allowedMethods="GET" doc:name="HTTP" />

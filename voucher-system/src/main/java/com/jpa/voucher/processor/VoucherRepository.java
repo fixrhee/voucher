@@ -102,11 +102,48 @@ public class VoucherRepository {
 		}
 	}
 
-	public List<PublishVoucher> searchVoucherByCodeRefID(String rid, Voucher v, int mid) {
+	public List<PublishVoucher> searchVoucherByCodeRefID(String rid, Voucher v, int currentPage, int pageSize,
+			int mid) {
 		try {
 			List<PublishVoucher> voucher = this.jdbcTemplate.query(
-					"SELECT id, voucher_id, member_id, outlet_id, uid, member_ref_id, session_id, name, email, msisdn, address, id_card_no, status, publish_date, redeem_date, redeem_expired_date FROM voucher_publish WHERE member_id = ? and voucher_id = ? and member_ref_id = ? ORDER BY id DESC;",
-					new Object[] { mid, v.getId(), rid }, new RowMapper<PublishVoucher>() {
+					"SELECT id, voucher_id, member_id, outlet_id, uid, member_ref_id, session_id, name, email, msisdn, address, id_card_no, status, publish_date, redeem_date, redeem_expired_date FROM voucher_publish WHERE member_id = ? and voucher_id = ? and member_ref_id = ? ORDER BY id DESC LIMIT ?,?;",
+					new Object[] { mid, v.getId(), rid, currentPage, pageSize }, new RowMapper<PublishVoucher>() {
+						public PublishVoucher mapRow(ResultSet rs, int arg1) throws SQLException {
+							PublishVoucher voucher = new PublishVoucher();
+							Member member = new Member();
+							member.setId(rs.getInt("member_id"));
+							Outlet outlet = new Outlet();
+							outlet.setId(rs.getInt("outlet_id"));
+							voucher.setId(rs.getInt("id"));
+							voucher.setMember(member);
+							voucher.setVoucher(v);
+							voucher.setOutlet(outlet);
+							voucher.setUid(rs.getString("uid"));
+							voucher.setMemberRefNo(rs.getString("member_ref_id"));
+							voucher.setSessionID(rs.getString("session_id"));
+							voucher.setName(rs.getString("name"));
+							voucher.setEmail(rs.getString("email"));
+							voucher.setMsisdn(rs.getString("msisdn"));
+							voucher.setAddress(rs.getString("address"));
+							voucher.setIdCardNo(rs.getString("id_card_no"));
+							voucher.setStatus(rs.getString("status"));
+							voucher.setPublishDate(rs.getTimestamp("publish_date"));
+							voucher.setRedeemDate(rs.getTimestamp("redeem_date"));
+							voucher.setRedeemExpiredDate(rs.getDate("redeem_expired_date"));
+							return voucher;
+						}
+					});
+			return voucher;
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	public List<PublishVoucher> searchVoucherByVID(Voucher v, int currentPage, int pageSize, int mid) {
+		try {
+			List<PublishVoucher> voucher = this.jdbcTemplate.query(
+					"SELECT id, voucher_id, member_id, outlet_id, uid, member_ref_id, session_id, name, email, msisdn, address, id_card_no, status, publish_date, redeem_date, redeem_expired_date FROM voucher_publish WHERE member_id = ? and voucher_id = ? ORDER BY id DESC LIMIT ?,?;",
+					new Object[] { mid, v.getId(), currentPage, pageSize }, new RowMapper<PublishVoucher>() {
 						public PublishVoucher mapRow(ResultSet rs, int arg1) throws SQLException {
 							PublishVoucher voucher = new PublishVoucher();
 							Member member = new Member();
@@ -389,6 +426,14 @@ public class VoucherRepository {
 	@Autowired
 	public void setDataSource(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
+	}
+
+	public void updateVoucher(Voucher payload, int vid, int mid) {
+		jdbcTemplate.update(
+				"UPDATE vouchers set code = ?, name = ?, description = ?, quota = ?, active = ?, amount = ?, percentage = ?, publish_expiry = ?, redeem_expiry = ?, publish_expired_date = ?, redeem_expired_date = ? where id = ?",
+				payload.getCode(), payload.getName(), payload.getDescription(), payload.getQuota(), payload.getActive(),
+				payload.getAmount(), payload.getPercentage(), payload.getPublishExpiry(), payload.getRedeemExpiry(),
+				payload.getPublishExpiredDate(), payload.getRedeemExpiredDate(), vid);
 	}
 
 }

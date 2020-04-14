@@ -101,4 +101,13 @@ public class ProductRepository {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
+	public void createProduct(String name, String description, Integer id) {
+		jdbcTemplate.update("insert into products (member_id, name, description) values (?, ?, ?)", id, name,
+				description);
+	}
+
+	public void updateProduct(String name, String description, int id) {
+		jdbcTemplate.update("update products set name = ?, description = ? where id = ?", name, description, id);
+	}
+
 }

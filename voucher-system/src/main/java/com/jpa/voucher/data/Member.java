@@ -13,6 +13,7 @@ public class Member {
 	private String password;
 	private String secret;
 	private Boolean active;
+	private Boolean admin;
 	private String notifyURL;
 	private Date createdDate;
 
@@ -88,6 +89,14 @@ public class Member {
 
 	public void setSecret(String secret) {
 		this.secret = secret;
+	}
+
+	public Boolean getAdmin() {
+		return admin;
+	}
+
+	public void setAdmin(Boolean admin) {
+		this.admin = admin;
 	}
 
 }

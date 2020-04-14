@@ -46,9 +46,18 @@ public class VoucherHandler {
 		}
 	}
 
-	public ServiceResponse getVoucherByCode(String code, String refID, String token) {
+	public ServiceResponse getVoucherByCode(String code, String refID, int currentPage, int pageSize, String token) {
 		try {
-			List<PublishVoucher> lpv = voucherProcessor.getVoucherByCode(code, refID, token);
+			List<PublishVoucher> lpv = voucherProcessor.getVoucherByCode(code, refID, currentPage, pageSize, token);
+			return ResponseBuilder.getStatus(Status.PROCESSED, lpv);
+		} catch (TransactionException e) {
+			return ResponseBuilder.getStatus(e.getMessage(), null);
+		}
+	}
+
+	public ServiceResponse getVoucherByVID(String vid, int currentPage, int pageSize, String token) {
+		try {
+			List<PublishVoucher> lpv = voucherProcessor.getVoucherByVID(vid, currentPage, pageSize, token);
 			return ResponseBuilder.getStatus(Status.PROCESSED, lpv);
 		} catch (TransactionException e) {
 			return ResponseBuilder.getStatus(e.getMessage(), null);
@@ -58,6 +67,15 @@ public class VoucherHandler {
 	public ServiceResponse createVoucher(Map<String, Object> payload, VoucherImage img, String token) {
 		try {
 			voucherProcessor.createVoucher(payload, img, token);
+			return ResponseBuilder.getStatus(Status.PROCESSED, null);
+		} catch (TransactionException e) {
+			return ResponseBuilder.getStatus(e.getMessage(), null);
+		}
+	}
+
+	public ServiceResponse updateVoucher(Voucher payload, int vid, String token) {
+		try {
+			voucherProcessor.updateVoucher(payload, vid, token);
 			return ResponseBuilder.getStatus(Status.PROCESSED, null);
 		} catch (TransactionException e) {
 			return ResponseBuilder.getStatus(e.getMessage(), null);

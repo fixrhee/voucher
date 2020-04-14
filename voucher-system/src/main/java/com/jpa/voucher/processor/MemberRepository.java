@@ -29,7 +29,7 @@ public class MemberRepository {
 	public Member validateAccess(String username, String secret) {
 		try {
 			Member member = this.jdbcTemplate.queryForObject(
-					"SELECT id, username, name, email, password, secret, notify_url, active, created_date FROM members WHERE username = ? AND password = MD5(?);",
+					"SELECT id, username, name, email, password, secret, notify_url, active, admin, created_date FROM members WHERE username = ? AND password = MD5(?);",
 					new Object[] { username, secret }, new RowMapper<Member>() {
 						public Member mapRow(ResultSet rs, int arg1) throws SQLException {
 							Member member = new Member();
@@ -41,6 +41,7 @@ public class MemberRepository {
 							member.setSecret(rs.getString("secret"));
 							member.setNotifyURL(rs.getString("notify_url"));
 							member.setActive(rs.getBoolean("active"));
+							member.setAdmin(rs.getBoolean("admin"));
 							member.setCreatedDate(rs.getTimestamp("created_date"));
 							return member;
 						}
@@ -54,7 +55,7 @@ public class MemberRepository {
 	public Member getMemberByID(Object id) {
 		try {
 			Member member = this.jdbcTemplate.queryForObject(
-					"SELECT id, username, name, email, password, secret, notify_url, active, created_date FROM members WHERE id = ?;",
+					"SELECT id, username, name, email, password, secret, notify_url, active, admin, created_date FROM members WHERE id = ?;",
 					new Object[] { id }, new RowMapper<Member>() {
 						public Member mapRow(ResultSet rs, int arg1) throws SQLException {
 							Member member = new Member();
@@ -66,6 +67,7 @@ public class MemberRepository {
 							member.setSecret(rs.getString("secret"));
 							member.setNotifyURL(rs.getString("notify_url"));
 							member.setActive(rs.getBoolean("active"));
+							member.setAdmin(rs.getBoolean("admin"));
 							member.setCreatedDate(rs.getTimestamp("created_date"));
 							return member;
 						}
@@ -79,7 +81,7 @@ public class MemberRepository {
 	public Member getMemberByUsername(String username) {
 		try {
 			Member member = this.jdbcTemplate.queryForObject(
-					"SELECT id, username, name, email, password, secret, notify_url, active, created_date FROM members WHERE username = ?;",
+					"SELECT id, username, name, email, password, secret, notify_url, active, admin, created_date FROM members WHERE username = ?;",
 					new Object[] { username }, new RowMapper<Member>() {
 						public Member mapRow(ResultSet rs, int arg1) throws SQLException {
 							Member member = new Member();
@@ -91,6 +93,7 @@ public class MemberRepository {
 							member.setSecret(rs.getString("secret"));
 							member.setNotifyURL(rs.getString("notify_url"));
 							member.setActive(rs.getBoolean("active"));
+							member.setAdmin(rs.getBoolean("admin"));
 							member.setCreatedDate(rs.getTimestamp("created_date"));
 							return member;
 						}
@@ -104,7 +107,7 @@ public class MemberRepository {
 	public List<Member> getAllMember(int pageSize, int rowNum) {
 		try {
 			List<Member> member = this.jdbcTemplate.query(
-					"SELECT id, username, name, email, password, secret, notify_url, active, created_date FROM members ORDER BY id DESC LIMIT ?,?;",
+					"SELECT id, username, name, email, password, secret, notify_url, active, admin, created_date FROM members ORDER BY id DESC LIMIT ?,?;",
 					new Object[] { pageSize, rowNum }, new RowMapper<Member>() {
 						public Member mapRow(ResultSet rs, int arg1) throws SQLException {
 							Member member = new Member();
@@ -116,6 +119,7 @@ public class MemberRepository {
 							member.setSecret(rs.getString("secret"));
 							member.setNotifyURL(rs.getString("notify_url"));
 							member.setActive(rs.getBoolean("active"));
+							member.setAdmin(rs.getBoolean("admin"));
 							member.setCreatedDate(rs.getTimestamp("created_date"));
 							return member;
 						}
@@ -144,6 +148,7 @@ public class MemberRepository {
 					member.setSecret(rs.getString("secret"));
 					member.setNotifyURL(rs.getString("notify_url"));
 					member.setActive(rs.getBoolean("active"));
+					member.setAdmin(rs.getBoolean("admin"));
 					member.setCreatedDate(rs.getTimestamp("created_date"));
 					mapRet.put(rs.getInt("id"), member);
 				}
@@ -155,15 +160,15 @@ public class MemberRepository {
 
 	public void createMember(Member member) {
 		jdbcTemplate.update(
-				"insert into members (username, name, email, password, secret, notify_url, active) values (?, ?, ?, ?, ?, ?, ?)",
+				"insert into members (username, name, email, password, secret, notify_url, active, admin) values (?, ?, ?, ?, ?, ?, ?)",
 				member.getUsername(), member.getName(), member.getEmail(), member.getPassword(), member.getSecret(),
-				member.getNotifyURL(), member.isActive());
+				member.getNotifyURL(), member.isActive(), member.getAdmin());
 	}
 
 	public void updateMember(String id, Member member) {
 		jdbcTemplate.update(
-				"update members set name = ?, email = ?, password = ?, secret = ?, active = ?, notify_url = ? where id = ?",
-				member.getName(), member.getEmail(), member.getPassword(), member.getSecret(), member.isActive(),
+				"update members set name = ?, email = ?, password = ?, secret = ?, active = ?, admin = ?, notify_url = ? where id = ?",
+				member.getName(), member.getEmail(), member.getPassword(), member.getSecret(), member.isActive(), member.getAdmin(),
 				member.getNotifyURL(), id);
 	}
 

@@ -38,4 +38,24 @@ public class ProductProcessor {
 		return pd;
 	}
 
+	public void createProduct(String name, String description, String token) throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+		productRepository.createProduct(name, description, m.getId());
+	}
+	
+	public void updateProduct(int id, String name, String description, String token) throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+		Product pd = productRepository.getProductByID(id, m.getId());
+		if (pd == null) {
+			throw new TransactionException(Status.PRODUCT_NOT_FOUND);
+		}
+		productRepository.updateProduct(name, description, id);
+	}
+
 }
