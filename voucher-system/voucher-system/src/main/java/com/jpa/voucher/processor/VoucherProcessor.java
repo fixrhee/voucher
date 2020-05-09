@@ -294,6 +294,8 @@ public class VoucherProcessor {
 		if (pv == null) {
 			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
 		}
+		Voucher pd = voucherRepository.getVoucherByID(pv.getVoucher().getId(), m.getId());
+		pv.setVoucher(pd);
 		return pv;
 	}
 
