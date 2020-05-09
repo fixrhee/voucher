@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+	<spring:beans>
+		<spring:bean id="VoucherServiceImpl" class="com.jpa.voucher.processor.VoucherHandler" />
+	</spring:beans>
+
+
+	<flow name="voucher-getallFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.currentPage != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.pageSize != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+
+		<choice>
+			<when
+				expression="#[message.inboundProperties.'http.query.params'.startDate != null &amp;&amp; message.inboundProperties.'http.query.params'.endDate != null]">
+				<logger level="INFO" message="WIth Dates" />
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.startDate]"
+					variableName="startDate" />
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.endDate]"
+					variableName="endDate" />
+			</when>
+			<otherwise>
+				<logger level="INFO" message="No Dates" />
+				<set-variable value="NA" variableName="startDate" />
+				<set-variable value="NA" variableName="endDate" />
+			</otherwise>
+		</choice>
+		<invoke method="getAllVoucher"
+			methodArguments="#[flowVars['startDate']], #[flowVars['endDate']], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-byProductFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/product/{productID}" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.productID != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.currentPage != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.pageSize != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="getVoucherByProduct"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.productID], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-byCodeFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish/code" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.currentPage != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.pageSize != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.code != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.memberRefID != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="getVoucherByCode"
+			methodArguments="#[message.inboundProperties.'http.query.params'.code], #[message.inboundProperties.'http.query.params'.memberRefID], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-byVoucherIDFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish/voucherID/{voucherID}" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.currentPage != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.pageSize != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.voucherID != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="getVoucherByVID"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.voucherID], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-byIdFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/{id}" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.id != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="getVoucherByID"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.id], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-publishGetallFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.currentPage != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.pageSize != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<choice>
+			<when
+				expression="#[message.inboundProperties.'http.query.params'.startDate != null &amp;&amp; message.inboundProperties.'http.query.params'.endDate != null]">
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.startDate]"
+					variableName="startDate" />
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.endDate]"
+					variableName="endDate" />
+			</when>
+			<otherwise>
+				<set-variable value="NA" variableName="startDate" />
+				<set-variable value="NA" variableName="endDate" />
+			</otherwise>
+		</choice>
+		<choice>
+			<when
+				expression="#[message.inboundProperties.'http.query.params'.status != null]">
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.status]"
+					variableName="status" />
+			</when>
+			<otherwise>
+				<set-variable value="0" variableName="status" />
+			</otherwise>
+		</choice>
+
+		<invoke method="loadAllPublishVoucher"
+			methodArguments="#[flowVars['startDate']], #[flowVars['endDate']], #[flowVars['status']], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-publishFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish" allowedMethods="POST" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter expression="#[payload.voucherID != null]" />
+				<expression-filter expression="#[payload.sessionID != null]" />
+				<expression-filter expression="#[payload.memberRefID != null]" />
+				<expression-filter expression="#[payload.name != null]" />
+				<expression-filter expression="#[payload.email != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="voucherPublish" methodArguments="#[payload], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-unpublishFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish/{uid}" allowedMethods="DELETE" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.uid]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="voucherUnpublish"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.uid], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-inquiryFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/inquiry/{uid}" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.uid != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="voucherInquiry"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.uid], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-redeemFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish/redeem" allowedMethods="POST" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter expression="#[payload.uid != null]" />
+				<expression-filter expression="#[payload.outletID != null]" />
+				<expression-filter expression="#[payload.redemptionNumber != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="voucherRedeem"
+			methodArguments="#[payload.uid], #[payload.outletID], #[payload.redemptionNumber], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-searchByRefIDFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish/ref/{refID}" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.currentPage != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.pageSize != null]" />
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.refID != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="searchVoucherByRefID"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.refID], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-createFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher" allowedMethods="POST" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<set-variable variableName="originalPayload" value="#[new java.util.HashMap()]"
+			doc:name="Variable" />
+		<set-variable variableName="voucherImage"
+			value="#[new com.jpa.voucher.data.VoucherImage()]" doc:name="Variable" />
+		<foreach collection="#[message.inboundAttachments]" doc:name="For Each">
+			<choice doc:name="Choice">
+				<when expression="#[flowVars.key == 'voucherImage']">
+					<logger level="INFO"
+						message="[IMAGE SIZE : #[payload.dataSource.part.size] byte(s)]"
+						doc:name="Logger" />
+					<set-variable
+						value="#[org.apache.commons.lang.StringUtils.substringAfter(payload.getContentType(),'/')]"
+						variableName="fileExtension" doc:name="Variable" />
+					<expression-component doc:name="Expression">
+						<![CDATA[
+						regMap = new com.jpa.voucher.data.VoucherImage();
+						regMap.content = payload.getContent();			
+						regMap.fileName = message.id;
+						regMap.fileSize = payload.dataSource.part.size;
+						regMap.fileExtension = flowVars.fileExtension;
+						voucherImage = regMap;]]>
+					</expression-component>
+				</when>
+				<otherwise>
+					<expression-transformer
+						expression="#[originalPayload[flowVars.key]=payload.getContent();originalPayload]"
+						doc:name="Expression" />
+				</otherwise>
+			</choice>
+		</foreach>
+		<set-payload value="#[flowVars['originalPayload']]"
+			doc:name="Set Payload" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter expression="#[payload.productID != null]" />
+				<expression-filter expression="#[payload.code != null]" />
+				<expression-filter expression="#[payload.name != null]" />
+				<expression-filter expression="#[payload.description != null]" />
+				<expression-filter expression="#[payload.quota != null]" />
+				<expression-filter expression="#[payload.amount != null]" />
+				<expression-filter expression="#[payload.percentage != null]" />
+				<expression-filter expression="#[voucherImage.fileSize != 0]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+
+		<message-filter onUnaccepted="invalidImageSizeFlow">
+			<expression-filter expression="#[voucherImage.fileSize &lt; 1000000]" />
+		</message-filter>
+		<logger level="INFO" message="#[payload]" />
+		<invoke method="createVoucher"
+			methodArguments="#[payload], #[flowVars['voucherImage']], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<set-variable value="#[payload]" variableName="responsePayload"
+			doc:name="Variable" />
+		<choice>
+			<when expression="#[payload.status == 'PROCESSED']">
+				<set-payload value="#[flowVars['voucherImage']]" />
+				<vm:outbound-endpoint exchange-pattern="one-way"
+					connector-ref="File_VM" path="save.image" doc:name="VM" />
+			</when>
+			<otherwise>
+				<logger level="INFO" message="[IGNORE SAVING IMAGE]" />
+			</otherwise>
+		</choice>
+		<set-payload value="#[flowVars['responsePayload']]" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="voucher-updateFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/{voucherID}" allowedMethods="PUT" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter>
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.voucherID != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<json:json-to-object-transformer
+			returnClass="com.jpa.voucher.data.Voucher" />
+		<invoke method="updateVoucher"
+			methodArguments="#[payload], #[message.inboundProperties.'http.uri.params'.voucherID ], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+	<flow name="saveImage">
+		<vm:inbound-endpoint exchange-pattern="one-way"
+			connector-ref="File_VM" path="save.image" doc:name="VM" />
+		<set-variable variableName="fileName"
+			value="#[payload.fileName].#[payload.fileExtension]" doc:name="Variable" />
+		<set-payload value="#[payload.content]" />
+		<file:outbound-endpoint path="/Volumes/Data/images"
+			connector-ref="File" responseTimeout="10000" doc:name="File" />
+	</flow>
+</mule>
