@@ -36,7 +36,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		<choice>
 			<when
 				expression="#[message.inboundProperties.'http.query.params'.startDate != null &amp;&amp; message.inboundProperties.'http.query.params'.endDate != null]">
-				<logger level="INFO" message="WIth Dates" />
 				<set-variable
 					value="#[message.inboundProperties.'http.query.params'.startDate]"
 					variableName="startDate" />
@@ -45,7 +44,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 					variableName="endDate" />
 			</when>
 			<otherwise>
-				<logger level="INFO" message="No Dates" />
 				<set-variable value="NA" variableName="startDate" />
 				<set-variable value="NA" variableName="endDate" />
 			</otherwise>
@@ -108,7 +106,8 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 
 	<flow name="voucher-byVoucherIDFlow">
 		<http:listener config-ref="HTTP_Listener_Configuration"
-			path="voucher/publish/voucherID/{voucherID}" allowedMethods="GET" doc:name="HTTP" />
+			path="voucher/publish/voucherID/{voucherID}" allowedMethods="GET"
+			doc:name="HTTP" />
 		<set-variable
 			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
 			variableName="token" doc:name="Variable" />
@@ -199,6 +198,43 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		<flow-ref name="responseFlow" doc:name="Flow Reference" />
 	</flow>
 
+
+	<flow name="voucher-publishStatFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="voucher/publish/stat" allowedMethods="GET" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" doc:name="Variable" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter doc:name="And">
+				<expression-filter
+					expression="#[message.inboundProperties.'http.query.params'.status != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<choice>
+			<when
+				expression="#[message.inboundProperties.'http.query.params'.startDate != null &amp;&amp; message.inboundProperties.'http.query.params'.endDate != null]">
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.startDate]"
+					variableName="startDate" />
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.endDate]"
+					variableName="endDate" />
+			</when>
+			<otherwise>
+				<set-variable value="NA" variableName="startDate" />
+				<set-variable value="NA" variableName="endDate" />
+			</otherwise>
+		</choice>
+		<invoke method="getPublishVoucherStat"
+			methodArguments="#[flowVars['startDate']], #[flowVars['endDate']], #[message.inboundProperties.'http.query.params'.status], #[flowVars['token']]"
+			object-ref="VoucherServiceImpl" doc:name="Invoke" />
+		<flow-ref name="responseFlow" doc:name="Flow Reference" />
+	</flow>
+
+
 	<flow name="voucher-publishFlow">
 		<http:listener config-ref="HTTP_Listener_Configuration"
 			path="voucher/publish" allowedMethods="POST" doc:name="HTTP" />
@@ -219,7 +255,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		<invoke method="voucherPublish" methodArguments="#[payload], #[flowVars['token']]"
 			object-ref="VoucherServiceImpl" doc:name="Invoke" />
 		<flow-ref name="responseFlow" doc:name="Flow Reference" />
-		
+
 	</flow>
 
 	<flow name="voucher-unpublishFlow">

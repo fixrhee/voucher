@@ -462,4 +462,25 @@ public class VoucherProcessor {
 		return voucherRepository.countPublishVouchers(mid);
 	}
 
+	public Integer getPublishVoucherStat(String start, String end, String status, String token)
+			throws TransactionException {
+		Member m = memberProcessor.Authenticate(token);
+		if (m == null) {
+			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
+		}
+
+		if (start.equalsIgnoreCase("NA") == false && end.equalsIgnoreCase("NA") == false) {
+			try {
+				Utils.validateDate((String) start);
+				Utils.validateDate((String) end);
+			} catch (DateTimeParseException e) {
+				throw new TransactionException(Status.INVALID_DATE);
+			}
+
+			return voucherRepository.countPublishVouchersWithDatesByStatus(start, end, m.getId(), status);
+		} else {
+			return voucherRepository.countPublishVouchersByStatus(m.getId(), status);
+		}
+	}
+
 }

@@ -1,6 +1,8 @@
 package com.jpa.voucher.processor;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -30,13 +32,19 @@ public class OutletProcessor {
 		return outlet;
 	}
 
-	public List<Outlet> getAllOutlet(int currentPage, int pageSize, String token) throws TransactionException {
+	public Map<String, Object> getAllOutlet(int currentPage, int pageSize, String token) throws TransactionException {
+		Map<String, Object> mo = new HashMap<String, Object>();
+
 		Member m = memberProcessor.Authenticate(token);
 		if (m == null) {
 			throw new TransactionException(Status.UNAUTHORIZED_ACCESS);
 		}
 		List<Outlet> lo = outletRepository.getAllOutlet(currentPage, pageSize, m.getId());
-		return lo;
+		Integer count = outletRepository.countOutlets(m.getId());
+
+		mo.put("body", lo);
+		mo.put("totalRecord", count);
+		return mo;
 	}
 
 	public void createOutlet(String name, String address, String token) throws TransactionException {

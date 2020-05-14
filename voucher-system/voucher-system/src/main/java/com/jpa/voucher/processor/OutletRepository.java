@@ -82,6 +82,12 @@ public class OutletRepository {
 		jdbcTemplate.update("insert into outlets (member_id, name, address) values (?, ?, ?)", id, name, address);
 	}
 
+	public Integer countOutlets(int mid) {
+		Integer count = this.jdbcTemplate.queryForObject("SELECT COUNT(id) from outlets WHERE member_id = ?;",
+				new Object[] { mid }, Integer.class);
+		return count;
+	}
+
 	@Autowired
 	public void setDataSource(DataSource dataSource) {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);

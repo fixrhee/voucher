@@ -11,13 +11,14 @@ http://www.hazelcast.com/schema/spring classpath:hazelcast.xsd">
 	<hz:hazelcast id="instance">
 		<hz:config>
 			<hz:group name="voucher" password="r4h4$14" />
-			<hz:network port="5710" port-auto-increment="false">
+			<hz:network port="5710" port-auto-increment="true">
 				<hz:join>
 					<hz:multicast enabled="false" multicast-group="224.2.2.3"
 						multicast-port="54327" />
 				</hz:join>
 			</hz:network>
 			<hz:map name="QuotaLock" time-to-live-seconds="90" />
+			<hz:map name="Member" time-to-live-seconds="3600" />
 		</hz:config>
 	</hz:hazelcast>
 </beans>

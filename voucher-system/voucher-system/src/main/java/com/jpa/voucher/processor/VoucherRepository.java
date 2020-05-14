@@ -600,6 +600,20 @@ public class VoucherRepository {
 		return count;
 	}
 
+	public Integer countPublishVouchersByStatus(int mid, String status) {
+		Integer count = this.jdbcTemplate.queryForObject(
+				"SELECT COUNT(id) from voucher_publish WHERE member_id = ? AND status = ?;",
+				new Object[] { mid, status }, Integer.class);
+		return count;
+	}
+
+	public Integer countPublishVouchersWithDatesByStatus(String start, String end, int mid, String status) {
+		Integer count = this.jdbcTemplate.queryForObject(
+				"SELECT COUNT(id) from voucher_publish WHERE member_id = ? AND status = ? AND (DATE(publish_date) BETWEEN ? AND ?);",
+				new Object[] { mid, status, start, end }, Integer.class);
+		return count;
+	}
+
 	public void publishVoucher(Map<String, Object> payload, int mid, String uid, Date expiredDate) {
 		jdbcTemplate.update(
 				"insert into voucher_publish (voucher_id, member_id, uid, session_id, name, email, msisdn, address, id_card_no, member_ref_id, redeem_expired_date) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",

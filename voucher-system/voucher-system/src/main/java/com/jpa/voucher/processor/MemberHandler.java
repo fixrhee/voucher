@@ -22,7 +22,6 @@ public class MemberHandler {
 			SessionToken token = memberProcessor.createJWTHMAC256(username, password);
 			return ResponseBuilder.getStatus(Status.PROCESSED, token);
 		} catch (TransactionException e) {
-			System.out.println(e.getMessage());
 			return ResponseBuilder.getStatus(e.getMessage(), null);
 		}
 	}

@@ -1,6 +1,7 @@
 package com.jpa.voucher.processor;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class OutletHandler {
 
 	public ServiceResponse getAllOutlet(int currentPage, int pageSize, String token) {
 		try {
-			List<Outlet> outlet = outletProcessor.getAllOutlet(currentPage, pageSize, token);
+			Map<String, Object> outlet = outletProcessor.getAllOutlet(currentPage, pageSize, token);
 			return ResponseBuilder.getStatus(Status.PROCESSED, outlet);
 		} catch (TransactionException e) {
 			return ResponseBuilder.getStatus(e.getMessage(), null);

@@ -1,5 +1,6 @@
 package com.jpa.voucher.processor;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,8 +52,18 @@ public class VoucherHandler {
 		try {
 			Map<String, Object> lacq = voucherProcessor.loadAllPublishVoucher(start, end, status, currentPage, pageSize,
 					token);
-			ServiceResponse sr = ResponseBuilder.getStatus(Status.PROCESSED, lacq);
 			return ResponseBuilder.getStatus(Status.PROCESSED, lacq);
+		} catch (TransactionException e) {
+			return ResponseBuilder.getStatus(e.getMessage(), null);
+		}
+	}
+
+	public ServiceResponse getPublishVoucherStat(String start, String end, String status, String token) {
+		try {
+			Map<String, Integer> cmap = new HashMap<String, Integer>();
+			Integer stat = voucherProcessor.getPublishVoucherStat(start, end, status, token);
+			cmap.put("totalRecord", stat);
+			return ResponseBuilder.getStatus(Status.PROCESSED, cmap);
 		} catch (TransactionException e) {
 			return ResponseBuilder.getStatus(e.getMessage(), null);
 		}
