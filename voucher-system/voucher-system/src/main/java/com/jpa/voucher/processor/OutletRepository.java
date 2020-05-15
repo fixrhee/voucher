@@ -93,4 +93,36 @@ public class OutletRepository {
 		this.jdbcTemplate = new JdbcTemplate(dataSource);
 	}
 
+	public void updateOutlet(String id, String name, String address) {
+		jdbcTemplate.update("update outlets set name = ?, address = ? where id = ?", name, address, id);
+
+	}
+
+	public void addRedemptionPoint(String voucherID, String outletID) {
+		jdbcTemplate.update("insert into redemption_points (outlet_id, voucher_id) values (?, ?)", outletID, voucherID);
+	}
+
+		public List<Outlet> loadRedemptionPoint(String voucherID) {
+			try {
+				List<Outlet> outlet = this.jdbcTemplate.query(
+						"SELECT t1.id, t1.member_id, t1.name, t1.address, t1.created_date FROM outlets AS t1, redemption_points AS t2 WHERE t1.id = t2.outlet_id AND t2.voucher_id = ?;",
+						new Object[] { voucherID }, new RowMapper<Outlet>() {
+							public Outlet mapRow(ResultSet rs, int arg1) throws SQLException {
+								Outlet outlet = new Outlet();
+								Member member = new Member();
+								member.setId(rs.getInt("member_id"));
+								outlet.setMember(member);
+								outlet.setId(rs.getInt("id"));
+								outlet.setName(rs.getString("name"));
+								outlet.setAddress(rs.getString("address"));
+								outlet.setCreatedDate(rs.getTimestamp("created_date"));
+								return outlet;
+							}
+						});
+				return outlet;
+			} catch (EmptyResultDataAccessException e) {
+				return null;
+			}
+		}
+
 }

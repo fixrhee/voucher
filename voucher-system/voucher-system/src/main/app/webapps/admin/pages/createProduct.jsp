@@ -33,18 +33,18 @@
           <div class="card">
             <!-- /.card-header -->
             <div class="card-body">
-               <form class="form-horizontal">
+               <form action="/admin/createProductSubmit" class="form-horizontal" method="POST">
                 <div class="card-body">
                   <div class="form-group row">
                     <label for="name" class="col-sm-2 col-form-label">Name</label>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control" id="name" placeholder="Name">
+                      <input type="text" class="form-control" id="name" name="name" placeholder="Name">
                     </div>
                   </div>
                   <div class="form-group row">
                     <label for="description" class="col-sm-2 col-form-label">Description</label>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control" id="description" placeholder="Description">
+                      <input type="text" class="form-control" id="description" name="description" placeholder="Description">
                     </div>
                   </div>
                 </div>

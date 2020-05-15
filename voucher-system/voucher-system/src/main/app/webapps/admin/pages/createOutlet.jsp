@@ -33,18 +33,18 @@
           <div class="card">
             <!-- /.card-header -->
             <div class="card-body">
-               <form class="form-horizontal">
+               <form action="/admin/createOutletSubmit" class="form-horizontal" modelAttribute="outlet" method="POST">
                 <div class="card-body">
                   <div class="form-group row">
                     <label for="name" class="col-sm-2 col-form-label">Name</label>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control" id="name" placeholder="Name">
+                      <input type="text" class="form-control" id="name" name="name" placeholder="Name">
                     </div>
                   </div>
                   <div class="form-group row">
                     <label for="address" class="col-sm-2 col-form-label">Address</label>
                     <div class="col-sm-10">
-                      <input type="text" class="form-control" id="address" placeholder="Address">
+                      <input type="text" class="form-control" id="address" name="address" placeholder="Address">
                     </div>
                   </div>
                 </div>

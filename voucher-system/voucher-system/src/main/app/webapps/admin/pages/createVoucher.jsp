@@ -39,11 +39,11 @@
                       <div class="form-group">
                         <label>Select Product</label>
                         <select class="form-control">
-                          <option>Product 1</option>
-                          <option>Product 2</option>
-                          <option>Product 3</option>
-                          <option>Product 4</option>
-                        </select>
+           	             	<option>---- Select Product ----</option>
+		                <c:forEach var="listProduct" items="${listProduct}">
+							<option name="productName" id="productName" value="${listProduct.id}">${listProduct.name}</option>
+						</c:forEach>
+	             </select>
                       </div>
                     </div>
                   
@@ -53,6 +53,21 @@
                       <input type="text" class="form-control" id="code" placeholder="Code">
                     </div>
                   </div>
+                  
+                  <div class="form-group">
+                    <label for="exampleInputFile">Voucher Image</label>
+                    <div class="input-group">
+                      <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="exampleInputFile">
+                        <label class="custom-file-label" for="exampleInputFile">Choose file</label>
+                      </div>
+                    </div>
+                    
+                  <br/>
+                  <br/>
+                  <hr/>
+                  <br/>
+                  
                   <div class="form-group">
                     <label for="name" class="col-sm-2 col-form-label">Name</label>
                     <div class="col-sm-12">
@@ -67,30 +82,6 @@
                   </div>
                   
                    <div class="form-group">
-                    <label for="exampleInputFile">Voucher Image</label>
-                    <div class="input-group">
-                      <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="exampleInputFile">
-                        <label class="custom-file-label" for="exampleInputFile">Choose file</label>
-                      </div>
-                    </div>
-                    
-                  <br/>
-                  <br/>
-                  <hr/>
-                  <br/>
-                  
-                  	<div class="col-sm-6">
-                      <div class="form-group">
-                        <label><font color="red">Activate</font></label>
-                        <select class="form-control">
-                          <option>Enabled</option>
-                          <option>Disabled</option>
-                        </select>
-                      </div>
- 					</div>
- 	
- 	              <div class="form-group">
                     <label for="quota" class="col-sm-2 col-form-label">Quota</label>
                     <div class="col-sm-12">
                       <input type="text" class="form-control" id="quota" placeholder="Quota">
@@ -116,7 +107,7 @@
               	    </div>
                     </div>
                   </div>
-                  
+               
                   <br/>
                   <br/>
                   <hr/>

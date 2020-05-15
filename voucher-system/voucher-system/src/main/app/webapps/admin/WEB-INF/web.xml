@@ -30,13 +30,20 @@
 		<url-pattern>/logout</url-pattern>
 		<url-pattern>/index</url-pattern>
 		<url-pattern>/product</url-pattern>
+		<url-pattern>/viewProduct</url-pattern>
 		<url-pattern>/createProduct</url-pattern>
+		<url-pattern>/createProductSubmit</url-pattern>
+		<url-pattern>/createProductResult</url-pattern>
 		<url-pattern>/outlet</url-pattern>
 		<url-pattern>/viewOutlet</url-pattern>
 		<url-pattern>/createOutlet</url-pattern>
+		<url-pattern>/createOutletSubmit</url-pattern>
+		<url-pattern>/createOutletResult</url-pattern>
 		<url-pattern>/voucher</url-pattern>
+		<url-pattern>/viewVoucher</url-pattern>
 		<url-pattern>/createVoucher</url-pattern>
 		<url-pattern>/published</url-pattern>
+		<url-pattern>/viewPublished</url-pattern>
 	</servlet-mapping>
 
 	<listener>

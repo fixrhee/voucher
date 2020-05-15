@@ -80,12 +80,24 @@
 							}, {
 								"data" : "id",
 								"render" : function ( data, type, row ) {
-                   					 return "<a href='detailOutlet?id=" + data + "' class='btn btn-primary btn-xs'><i class='fa fa-arrow-circle-right' aria-hidden='true'></i> Detail</a> " + 
-                   					 "<a href='editOutlet?id=" + data + "' class='btn btn-info btn-xs'><i class='fa fa-arrow-circle-right' aria-hidden='true'></i> Edit</a>";
+                   					 return "<a href='editOutlet?id=" + data + "' class='btn btn-info btn-xs'><i class='fa fa-arrow-circle-right' aria-hidden='true'></i> Edit</a>";
                					 }	
 							}]
 					});
 	</script>
+
+<c:if test="${not empty fn:trim(notification)}">	
+	<script type="text/javascript">
+	$(function(){
+ 	 new PNotify({
+        title: '${title}',
+        text: '${message}',
+        type: '${notification}',
+        styling: 'bootstrap3'
+        });
+	});
+	</script>
+</c:if>
 
 </body>
 </html>

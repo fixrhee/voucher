@@ -1,6 +1,7 @@
 package com.jpa.voucher.processor;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,7 +18,7 @@ public class ProductHandler {
 
 	public ServiceResponse getAllProduct(int currentPage, int pageSize, String token) {
 		try {
-			List<Product> lacq = productProcessor.getAllProduct(currentPage, pageSize, token);
+			Map<String, Object> lacq = productProcessor.getAllProduct(currentPage, pageSize, token);
 			return ResponseBuilder.getStatus(Status.PROCESSED, lacq);
 		} catch (TransactionException e) {
 			return ResponseBuilder.getStatus(e.getMessage(), null);

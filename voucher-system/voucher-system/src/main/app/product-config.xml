@@ -23,6 +23,8 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			<and-filter doc:name="And">
 				<expression-filter expression="#[payload.name != null]" />
 				<expression-filter expression="#[payload.description != null]" />
+				<expression-filter expression="#[payload.name != '']" />
+				<expression-filter expression="#[payload.description != '']" />
 				<expression-filter expression="#[flowVars['token'] != null]" />
 			</and-filter>
 		</message-filter>

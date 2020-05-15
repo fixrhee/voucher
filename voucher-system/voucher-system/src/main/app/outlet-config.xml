@@ -23,14 +23,39 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			<and-filter>
 				<expression-filter expression="#[payload.name != null]" />
 				<expression-filter expression="#[payload.address != null]" />
+				<expression-filter expression="#[payload.name != '']" />
+				<expression-filter expression="#[payload.address != '']" />
 				<expression-filter expression="#[flowVars['token'] != null]" />
 			</and-filter>
 		</message-filter>
 		<invoke method="createOutlet"
-			methodArguments="#[payload.name], #[payload.description], #[flowVars['token']]"
+			methodArguments="#[payload.name], #[payload.address], #[flowVars['token']]"
 			object-ref="OutletServiceImpl" />
 		<flow-ref name="responseFlow" />
 	</flow>
+
+	<flow name="outlet-updateFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="outlet/{outletID}" allowedMethods="PUT" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter>
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.outletID != null]" />
+				<expression-filter expression="#[payload.name != null]" />
+				<expression-filter expression="#[payload.address != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="updateOutlet"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.outletID], #[payload.name], #[payload.address], #[flowVars['token']]"
+			object-ref="OutletServiceImpl" />
+		<flow-ref name="responseFlow" />
+	</flow>
+
 	<flow name="outlet-getByIDFlow">
 		<http:listener config-ref="HTTP_Listener_Configuration"
 			path="outlet/{outletID}" allowedMethods="GET" doc:name="HTTP" />
@@ -69,6 +94,47 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 		</message-filter>
 		<invoke method="getAllOutlet"
 			methodArguments="#[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			object-ref="OutletServiceImpl" />
+		<flow-ref name="responseFlow" />
+	</flow>
+
+	<flow name="outlet-redemptionPointFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="outlet/redemptionPoint" allowedMethods="POST" doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter>
+				<expression-filter expression="#[payload.voucherID != null]" />
+				<expression-filter expression="#[payload.outletID != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="addRedemptionPoint"
+			methodArguments="#[payload.voucherID], #[payload.outletID], #[flowVars['token']]"
+			object-ref="OutletServiceImpl" />
+		<flow-ref name="responseFlow" />
+	</flow>
+
+	<flow name="outlet-loadRedemptionPointFlow">
+		<http:listener config-ref="HTTP_Listener_Configuration"
+			path="outlet/redemptionPoint/voucher/{voucherID}" allowedMethods="GET"
+			doc:name="HTTP" />
+		<set-variable
+			value="#[org.apache.commons.lang.StringUtils.substring(message.inboundProperties.authorization,7)]"
+			variableName="token" />
+		<message-filter onUnaccepted="invalidParameterFlow"
+			doc:name="Message">
+			<and-filter>
+				<expression-filter
+					expression="#[message.inboundProperties.'http.uri.params'.voucherID != null]" />
+				<expression-filter expression="#[flowVars['token'] != null]" />
+			</and-filter>
+		</message-filter>
+		<invoke method="loadRedemptionPoint"
+			methodArguments="#[message.inboundProperties.'http.uri.params'.voucherID], #[flowVars['token']]"
 			object-ref="OutletServiceImpl" />
 		<flow-ref name="responseFlow" />
 	</flow>

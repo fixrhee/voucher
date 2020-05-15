@@ -110,4 +110,10 @@ public class ProductRepository {
 		jdbcTemplate.update("update products set name = ?, description = ? where id = ?", name, description, id);
 	}
 
+	public Integer countProducts(int mid) {
+		Integer count = this.jdbcTemplate.queryForObject("SELECT COUNT(id) from products WHERE member_id = ?;",
+				new Object[] { mid }, Integer.class);
+		return count;
+	}
+
 }

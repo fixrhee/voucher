@@ -1,5 +1,5 @@
 <%@ taglib uri = "http://java.sun.com/jsp/jstl/core" prefix = "c" %>
-
+<%@ taglib prefix = "fn" uri = "http://java.sun.com/jsp/jstl/functions" %>
 		<!DOCTYPE html>
 <html>
 <head>
@@ -38,6 +38,9 @@
 <link
 	href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700"
 	rel="stylesheet">
+<!-- PNotify -->
+<link href="plugins/pnotify/dist/pnotify.custom.min.css" rel="stylesheet">
+ 	
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 	<div class="wrapper">
