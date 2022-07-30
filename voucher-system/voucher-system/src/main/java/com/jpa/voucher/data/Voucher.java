@@ -18,6 +18,7 @@ public class Voucher {
 	private String imageURL;
 	private Boolean publishExpiry;
 	private Boolean redeemExpiry;
+	private Boolean purchased;
 	private Date publishExpiredDate;
 	private Date redeemExpiredDate;
 	private Date createdDate;
@@ -148,6 +149,14 @@ public class Voucher {
 
 	public void setRedeemExpiry(Boolean redeemExpiry) {
 		this.redeemExpiry = redeemExpiry;
+	}
+
+	public Boolean getPurchased() {
+		return purchased;
+	}
+
+	public void setPurchased(Boolean purchased) {
+		this.purchased = purchased;
 	}
 
 }

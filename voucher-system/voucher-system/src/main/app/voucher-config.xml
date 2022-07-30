@@ -48,8 +48,20 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 				<set-variable value="NA" variableName="endDate" />
 			</otherwise>
 		</choice>
+
+		<choice>
+			<when
+				expression="#[message.inboundProperties.'http.query.params'.memberRefID != null]">
+				<set-variable
+					value="#[message.inboundProperties.'http.query.params'.memberRefID]"
+					variableName="memberRefID" />
+			</when>
+			<otherwise>
+				<set-variable value="NA" variableName="memberRefID" />
+			</otherwise>
+		</choice>
 		<invoke method="getAllVoucher"
-			methodArguments="#[flowVars['startDate']], #[flowVars['endDate']], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']]"
+			methodArguments="#[flowVars['startDate']], #[flowVars['endDate']], #[message.inboundProperties.'http.query.params'.currentPage], #[message.inboundProperties.'http.query.params'.pageSize], #[flowVars['token']], #[memberRefID]"
 			object-ref="VoucherServiceImpl" doc:name="Invoke" />
 		<flow-ref name="responseFlow" doc:name="Flow Reference" />
 	</flow>

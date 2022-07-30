@@ -115,9 +115,9 @@
                   
                  <div class="form-group">
                   <label>Publish Expired Date</label>
-                    <div class="input-group date" id="reservationdate" data-target-input="nearest">
-                        <input type="text" class="form-control datetimepicker-input" data-target="#reservationdate"/>
-                        <div class="input-group-append" data-target="#reservationdate" data-toggle="datetimepicker">
+                    <div class="input-group date" id="publishdate" data-target-input="nearest">
+                        <input type="text" id="publishdatepicker" name="publishdatepicker" class="form-control datetimepicker-input" data-target="#publishdate"/>
+                        <div class="input-group-append" data-target="#publishdate" data-toggle="datetimepicker">
                             <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                         </div>
                     </div>
@@ -125,9 +125,9 @@
                 
                 <div class="form-group">
                   <label>Redeem Expired Date</label>
-                    <div class="input-group date" id="reservationdate" data-target-input="nearest">
-                        <input type="text" class="form-control datetimepicker-input" data-target="#reservationdate"/>
-                        <div class="input-group-append" data-target="#reservationdate" data-toggle="datetimepicker">
+                    <div class="input-group date" id="redeemdate" data-target-input="nearest">
+                        <input type="text" class="form-control datetimepicker-input" data-target="#redeemdate"/>
+                        <div class="input-group-append" data-target="#redeemdate" data-toggle="datetimepicker">
                             <div class="input-group-text"><i class="fa fa-calendar"></i></div>
                         </div>
                     </div>
@@ -155,6 +155,19 @@
 		<!-- footer -->
 			<%@include file="footer.jsp" %>
 		<!-- /.footer -->
+
+<script type="text/javascript">
+  $(function() {
+    // Bootstrap DateTimePicker v3
+    $('#publishdatepicker').datetimepicker({
+      pickTime: false
+    });
+    // Bootstrap DateTimePicker v4
+    $('#publishdatepicker').datetimepicker({
+      format: 'YYYY-MM-DD'
+    });
+  });
+</script>
 
 </body>
 </html>

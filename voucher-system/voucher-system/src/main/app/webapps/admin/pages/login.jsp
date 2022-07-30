@@ -21,7 +21,7 @@
 <body class="hold-transition login-page">
 <div class="login-box">
   <div class="login-logo">
-    <a href="index2.html"><b>Admin</b>VS</a>
+	<b>Admin</b>VS
   </div>
   <!-- /.login-logo -->
   <div class="card">
@@ -66,7 +66,7 @@
     
 
       <p class="mb-1">
-        <a href="forgot-password.html">I forgot my password</a>
+<!-- I forgot my password -->
       </p>
     </div>
     <!-- /.login-card-body -->

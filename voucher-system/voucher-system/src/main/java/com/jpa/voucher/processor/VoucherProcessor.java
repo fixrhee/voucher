@@ -7,10 +7,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +56,8 @@ public class VoucherProcessor {
 		snowcastSequencer = snowcast.createSequencer("voucherSequence", epoch);
 	}
 
-	public Map<String, Object> getAllVoucher(String start, String end, int currentPage, int pageSize, String token)
-			throws TransactionException {
+	public Map<String, Object> getAllVoucher(String start, String end, int currentPage, int pageSize, String token,
+			String memberRefID) throws TransactionException {
 		Map<String, Object> mv = new HashMap<String, Object>();
 		String sDate = LocalDate.now().toString();
 		String eDate = LocalDate.now().toString();
@@ -83,6 +85,21 @@ public class VoucherProcessor {
 			throw new TransactionException(Status.VOUCHER_NOT_FOUND);
 		}
 
+		List<Integer> vids = new LinkedList<Integer>();
+		for (int i = 0; i < lv.size(); i++) {
+			vids.add(lv.get(i).getId());
+		}
+
+		List<Integer> pvids = new LinkedList<Integer>();
+		if (!memberRefID.equalsIgnoreCase("NA")) {
+			List<PublishVoucher> pv = voucherRepository.loadPublishVoucherWithRefID(memberRefID, m.getId());
+			List<PublishVoucher> pvWithoutDuplicates = pv.stream().distinct().collect(Collectors.toList());
+
+			for (int i = 0; i < pvWithoutDuplicates.size(); i++) {
+				pvids.add(pvWithoutDuplicates.get(i).getVoucher().getId());
+			}
+		}
+
 		List<Integer> ids = new LinkedList<Integer>();
 		for (int i = 0; i < lv.size(); i++) {
 			ids.add(lv.get(i).getProduct().getId());
@@ -91,6 +108,13 @@ public class VoucherProcessor {
 		List<Voucher> lvc = new ArrayList<Voucher>(lv);
 		Map<Integer, Product> pm = productRepository.getProductInMap(ids);
 		for (int i = 0; i < lv.size(); i++) {
+			if (!memberRefID.equalsIgnoreCase("NA")) {
+				if (pvids.contains(lv.get(i).getId())) {
+					lvc.get(i).setPurchased(true);
+				} else {
+					lvc.get(i).setPurchased(false);
+				}
+			}
 			lvc.get(i).setProduct(pm.get(lv.get(i).getProduct().getId()));
 			lvc.get(i).setMember(m);
 		}

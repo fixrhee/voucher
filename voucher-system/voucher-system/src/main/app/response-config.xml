@@ -9,8 +9,8 @@ http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/cor
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
 
 	<flow name="responseFlow">
-		<set-property propertyName="http.status" value="#[payload.responseCode]"
-			doc:name="HTTP_STATUS" />
+		<!-- set-property propertyName="http.status" value="#[payload.responseCode]"
+			doc:name="HTTP_STATUS" /-->
 		<json:object-to-json-transformer
 			mapper-ref="jacksonObjectMapper" />
 	</flow>

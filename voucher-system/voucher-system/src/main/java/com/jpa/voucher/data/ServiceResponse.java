@@ -12,7 +12,7 @@ public class ServiceResponse {
 
 	}
 
-	public ServiceResponse(String status, String code, String description, Object payload) {
+	public ServiceResponse(String code, String status, String description, Object payload) {
 		setStatus(status);
 		setResponseCode(code);
 		setDescription(description);

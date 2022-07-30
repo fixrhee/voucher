@@ -20,9 +20,11 @@ public class VoucherHandler {
 	@Autowired
 	private VoucherProcessor voucherProcessor;
 
-	public ServiceResponse getAllVoucher(String start, String end, int currentPage, int pageSize, String token) {
+	public ServiceResponse getAllVoucher(String start, String end, int currentPage, int pageSize, String token,
+			String memberRefID) {
 		try {
-			Map<String, Object> lacq = voucherProcessor.getAllVoucher(start, end, currentPage, pageSize, token);
+			Map<String, Object> lacq = voucherProcessor.getAllVoucher(start, end, currentPage, pageSize, token,
+					memberRefID);
 			return ResponseBuilder.getStatus(Status.PROCESSED, lacq);
 		} catch (TransactionException e) {
 			return ResponseBuilder.getStatus(e.getMessage(), null);
